@@ -40,6 +40,7 @@ def main():
 		else:
 			check_result = False
 		count += 1
+
 #Opens files reads the whole file into an array
 def open_read_files(positive_path, negative_path):
 	positive_files = []
@@ -55,6 +56,7 @@ def open_read_files(positive_path, negative_path):
 		negative_files.append(byte_array)
 		file.close()
 	return (positive_files, negative_files)
+
 #calculates the entropy of a given byte block
 def calculate_block_entropy(block):
 	if len(block) == 0:
@@ -72,6 +74,7 @@ def calculate_block_entropy(block):
 			entropy = entropy + i * math.log(i, 2)
 	entropy = -entropy
 	return entropy
+
 #Counts the number of LN's in a given block
 def count_LN(block):
 	is_ff = False
@@ -83,6 +86,7 @@ def count_LN(block):
 			count += 1
 			is_ff = False
 	return count
+	
 #Generates the entropy and LN count data and passes it to main
 def discriminator(byte_array):
 	ln_entropy_list = []
