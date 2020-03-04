@@ -2,7 +2,11 @@ import sys
 import os
 import math
 
-#You can run the script with `python disc.py <dir> <dir>` 
+#You can run the script with `python disc.py <positive_samples> <negative_samples>` 
+
+#The ORDER OF DIRS is important!!! Don't make the first argument negative_samples! 
+
+
 
 BUFFERSIZE = 512 # The block size which can be changed ideally to a power of 2
 
@@ -13,13 +17,13 @@ def main():
 	count = 0
 	check_result = False 
 	#First Checks the negative samples
-	print("Checking negative samples")
-	for i in negative_files:
+	print("Checking positive samples")
+	for i in positive_files:
 		result = discriminator(i)
+		#print(result)
 		for j in result:
 			# 7.5 is the entropy limit and 4 is the Ln count. 
-			#Smaller files even JPEG's have a much smaller LN count by have much higher entropy compared to other files
-			if j[0] > 7.5 and j[1] > 4 and check_result != True:
+			if j[0] >= 220 and j[1] >= 2 and check_result != True:
 				print("File Number " + str(count) + " of size " +str(len(i)) + " IS a JPEG")	
 				check_result = True
 		if check_result == False:
@@ -28,11 +32,11 @@ def main():
 			check_result = False
 		count += 1
 	#Checks the positive samples
-	print("Checking positive samples")
-	for i in positive_files:
+	print("Checking negative samples")
+	for i in negative_files:
 		result = discriminator(i)
 		for j in result:
-			if j[0] > 7.5 and j[1] > 4 and check_result != True:
+			if j[0] >= 220 and j[1] >= 2 and check_result != True:
 				print("File Number " + str(count) + " of size " +str(len(i)) + " IS a JPEG")	
 				check_result = True
 		if check_result == False:
@@ -61,32 +65,29 @@ def open_read_files(positive_path, negative_path):
 def calculate_block_entropy(block):
 	if len(block) == 0:
 		return 0
-	freq_list = []
+	freq_list = [0] * 256
+
 	for i in range(256):
 		counter = 0
 		for byte in block:
 			if byte == i:
-				counter += 1
-		freq_list.append(float(counter)/len(block))
-	entropy = 0.0
+				freq_list[i] += 1
+	sum = 0
 	for i in freq_list:
-		if i > 0:
-			entropy = entropy + i * math.log(i, 2)
-	entropy = -entropy
-	return entropy
+		if i != 0:
+			sum += 1
+	return sum
 
 #Counts the number of LN's in a given block
 def count_LN(block):
-	is_ff = False
-	count = 0 
-	for i in block:
-		if  i == 255:
-			is_ff = True
-		if  i == 0 and is_ff:
+	i = 0
+	count = 0
+	while i < len(block)-1:
+		if bytes([block[i]]) == b'\xFF' and bytes([block[i + 1]]) == b'\x00':
 			count += 1
-			is_ff = False
+		i += 1
 	return count
-	
+
 #Generates the entropy and LN count data and passes it to main
 def discriminator(byte_array):
 	ln_entropy_list = []
